@@ -1,4 +1,4 @@
-# FRL-SNE
+# MRL-SNE
 Source code for IJCAI2024 paper: Metric-Based Relational Learning with Selective Neighbor Entities for Few-Shot Knowledge Graph Completion
 
 Few-shot Knowledge Graph (KG) completion is a focus of current research, where each task aims at querying unseen facts of a relation given few-shot reference entity pairs. However, existing works overlook two catergories of neighbor entities significant to few-shot KG completion. In this work, we propose a cascade neural network MRL-SNE, where we design neighbor entity encoders to identify these crucial neighbor entities. Evaluation in link prediction on two public datasets shows that our approach achieves new state-of-the-art results with different few-shot sizes.
