@@ -9,7 +9,7 @@ Few-shot Knowledge Graph (KG) completion is a focus of current research, where 
 python 3.6
 Pytorch == 1.13.1
 CUDA: 11.6
-GPU: NVIDIA GeForce V100
+GPU: V100
 ```
 
 # Datasets
@@ -34,7 +34,7 @@ We exclusively present comparisons with other baseline statistics in the 'Pre-tr
 python main.py --fine_tune --form 'Pre-Train' --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL_Pre_Train
 ```
 
-#### Wiki
+#### Wiki-One
 
 ```
 python main.py --fine_tune --form 'Pre-Train' --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
@@ -48,7 +48,7 @@ python main.py --fine_tune --form 'Pre-Train' --eval_every 5000 --datapath "data
 python main.py --fine_tune --form 'In-Train' --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL_Pre_Train
 ```
 
-#### Wiki
+#### Wiki-One
 
 ```
 python main.py --fine_tune --form 'In-Train' --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
@@ -56,13 +56,13 @@ python main.py --fine_tune --form 'In-Train' --eval_every 5000 --datapath "data/
 
 To test the trained models, please run as follows:
 
-#### Nell
+#### Nell-One
 
 ```
 python main.py --test --num_layers 3 --lr 8e-5 --few 5 --prefix new_final_c1n1-3_5_NELL_Pre_Train
 ```
 
-#### Wiki
+#### Wiki-One
 
 ```
 python main.py --test --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
