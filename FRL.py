@@ -13,9 +13,9 @@ from SNE import Attention_Module
 from Aggerator import *
 
 
-class FRL(nn.Module):
+class MRL(nn.Module):
     def __init__(self, args, num_symbols, embedding_size, embed, use_pretrain, finetune):
-        super(FRL, self).__init__()
+        super(MRL, self).__init__()
 
         self.args = args
         self.entity_encoder = Attention_Module(self.args, embed=embed, num_symbols = num_symbols,
