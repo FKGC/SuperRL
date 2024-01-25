@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 from dataloader import train_generate
 import random
-from FRL import MRL  # ************************
+from MRL import MRL  # ************************
 import numpy as np
 import json
 torch.set_num_threads(1)
