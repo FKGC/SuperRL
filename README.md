@@ -29,13 +29,13 @@ For optimal performance, please train MRL-SNE as follows:
 #### Nell-One
 
 ```
-python main.py --fine_tune --form 'Pre-Train' --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL_Pre_Train
+python main.py --fine_tune --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL
 ```
 
 #### Wiki-One
 
 ```
-python main.py --fine_tune --form 'Pre-Train' --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
+python main.py --fine_tune --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki
 ```
 
 To test the trained models, please run as follows:
@@ -43,13 +43,13 @@ To test the trained models, please run as follows:
 #### Nell-One
 
 ```
-python main.py --test --num_layers 3 --lr 8e-5 --few 5 --prefix new_final_c1n1-3_5_NELL_Pre_Train
+python main.py --test --num_layers 3 --lr 8e-5 --few 5 --prefix new_final_c1n1-3_5_NELL
 ```
 
 #### Wiki-One
 
 ```
-python main.py --test --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
+python main.py --test --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --prefix new_final_c1n1-6_5_Wiki
 ```
 
 Here are explanations of some important args,
