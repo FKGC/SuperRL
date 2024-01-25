@@ -21,12 +21,10 @@ and [Wiki data](https://sites.cs.ucsb.edu/~xwhan/datasets/wiki.tar.gz).
 The pre-trained embeddings can be downloaded from [Nell embeddings](https://drive.google.com/file/d/1XXvYpTSTyCnN-PBdUkWBXwXBI99Chbps/view?usp=sharing)
  and [Wiki embeddings](https://drive.google.com/file/d/1_3HBJde2KVMhBgJeGN1-wyvW88gRU1iL/view?usp=sharing).
 Note that all these files were provided by xiong and we just select what we need here. 
-All the dataset files and the pre-trained TransE embeddings should be put into the directory ./NELL and ./Wiki, respectively.
+All the dataset files and the pre-trained TransE embeddings should be put into the directory ./data/NELL and ./data/Wiki, respectively.
 
 # How to run
-We exclusively present comparisons with other baseline statistics in the 'Pre-train' setting, aligning with state-of-the-art benchmarks in the paper. Moreover, our code introduces an alternative setting termed 'In-train,' proposed by MetaR, in which our model surpasses established baseline methods as well. For optimal performance, please run as follows:
-
-## Pre-train Setting
+For optimal performance, please train MRL-SNE as follows:
 
 #### Nell-One
 
@@ -38,20 +36,6 @@ python main.py --fine_tune --form 'Pre-Train' --num_layers 3 --lr 8e-5 --few 5 -
 
 ```
 python main.py --fine_tune --form 'Pre-Train' --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
-```
-
-## In-train Setting
-
-#### Nell-One
-
-```
-python main.py --fine_tune --form 'In-Train' --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL_Pre_Train
-```
-
-#### Wiki-One
-
-```
-python main.py --fine_tune --form 'In-Train' --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
 ```
 
 To test the trained models, please run as follows:
@@ -67,4 +51,17 @@ python main.py --test --num_layers 3 --lr 8e-5 --few 5 --prefix new_final_c1n1-3
 ```
 python main.py --test --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --prefix new_final_c1n1-6_5_Wiki_Pre_Train
 ```
+
+Here are explanations of some important args,
+
+```bash
+--data_path: "directory of dataset"
+--few:       "the number of few in {few}-shot, as well as instance number in support set"
+--num_layers:    "the number of enhancement layer"
+--prefix:    "given name of current experiment"
+--fine_tune  "whether to fine tune the pre_trained embeddings"
+--device:    "the GPU number"
+```
+
+Normally, other args can be set to default values. See ``params.py`` for more details about argus if needed.
 
