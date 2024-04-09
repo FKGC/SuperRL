@@ -1,7 +1,7 @@
-# MRL-SNE
-Source code for IJCAI2024 paper: Metric-Based Relational Learning with Selective Neighbor Entities for Few-Shot Knowledge Graph Completion
+# SuperRL
+Source code for IJCAI2024 paper: Supervised Relational Learning with Selective Neighbor Entities for Few-Shot Knowledge Graph Completion
 
-Few-shot Knowledge Graph (KG) completion is a focus of current research, where each task aims at querying unseen facts of a relation given few-shot reference entity pairs. However, existing works overlook two catergories of neighbor entities significant to few-shot KG completion. In this work, we propose a cascade neural network MRL-SNE, where we design neighbor entity encoders to identify these crucial neighbor entities. Evaluation in link prediction on two public datasets shows that our approach achieves new state-of-the-art results with different few-shot sizes.
+Few-shot Knowledge Graph (KG) completion is a focus of current research, where each task aims at querying unseen facts of a relation given few-shot reference entity pairs. However, existing works overlook two catergories of neighbor entities significant to few-shot KG completion. In this work, we propose a cascaded embedding enhancement network SuperRL, where we design neighbor entity encoders to identify these crucial neighbor entities. Evaluation in link prediction on two public datasets shows that our approach achieves new state-of-the-art results with different few-shot sizes.
 
 # Requirements
 
@@ -14,7 +14,7 @@ GPU: V100
 
 # Datasets
 
-We adopt Nell-One and Wiki-One datasets to evaluate our model, MRL-SNE.
+We adopt Nell-One and Wiki-One datasets to evaluate our model, SuperRL.
 The orginal datasets and pretrain embeddings are provided from [xiong's repo](https://github.com/xwhan/One-shot-Relational-Learning). 
 For convenience, the datasets can be downloaded from [Nell data](https://sites.cs.ucsb.edu/~xwhan/datasets/nell.tar.gz)
 and [Wiki data](https://sites.cs.ucsb.edu/~xwhan/datasets/wiki.tar.gz). 
@@ -24,7 +24,7 @@ Note that all these files were provided by xiong and we just select what we need
 All the dataset files and the pre-trained TransE embeddings should be put into the directory ./data/NELL and ./data/Wiki, respectively.
 
 # How to run
-For optimal performance, please train MRL-SNE as follows:
+For optimal performance, please train SuperRL as follows:
 
 #### Nell-One
 
