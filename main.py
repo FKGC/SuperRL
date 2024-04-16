@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 from dataloader import train_generate
 import random
-from SuperRL import MRL  # ************************
+from CIAN import CIAN  # ************************
 import numpy as np
 import json
 torch.set_num_threads(1)
@@ -392,7 +392,7 @@ class Model_Run(object):
                 self.save()
                 break
 
-            if self.batch_nums - best_batches > self.eval_every * self.early_stop_epoch:
+            if self.batch_nums - best_batches > self.eval_every * self.early_stop:
                 logging.info('Early stop!')
                 self.save()
                 break
