@@ -29,23 +29,23 @@ For optimal performance, please train SuperRL as follows:
 #### Nell-One
 3-shot
 ```
-python main.py --fine_tune --num_layers 2 --lr 8e-5 --few 3 --early_stop_epoch 10 --prefix SuperRL_c1n1-2_3_NELL
+python main.py --fine_tune --num_layers 2 --lamda 0.06 --lr 8e-5 --few 3 --early_stop 10 --prefix SuperRL_c1n1-2_3_NELL
 ```
 
 5-shot
 ```
-python main.py --fine_tune --num_layers 2 --lr 8e-5 --few 5 --early_stop_epoch 10 --prefix SuperRL_c1n1-2_5_NELL
+python main.py --fine_tune --num_layers 2 --lamda 0.09 --lr 8e-5 --few 5 --early_stop 10 --prefix SuperRL_c1n1-2_5_NELL
 ```
 
 #### Wiki-One
 3-shot
 ```
-python main.py --datapath "data/Wiki/" --num_layers 8 --lr 2e-4 --few 3 --early_stop_epoch 10 --prefix new_final_c1n1-8_3_Wiki
+python main.py --datapath "data/Wiki/" --num_layers 8 --lamda 0.06 --lr 2e-4 --few 3 --early_stop 10 --prefix new_final_c1n1-8_3_Wiki
 ```
 
 5-shot
 ```
-python main.py --datapath "data/Wiki/" --num_layers 8 --lr 2e-4 --few 5 --early_stop_epoch 10 --prefix new_final_c1n1-8_5_Wiki
+python main.py --datapath "data/Wiki/" --num_layers 8 --lamda 0.09 --lr 2e-4 --few 5 --early_stop 10 --prefix new_final_c1n1-8_5_Wiki
 ```
 
 To test the trained models, please run as follows:
@@ -67,7 +67,8 @@ Here are explanations of some important args,
 ```bash
 --data_path: "directory of dataset"
 --few:       "the number of few in {few}-shot, as well as instance number in support set"
---num_layers:    "the number of enhancement layer"
+--num_layers:    "the number of enhancement layers"
+--lamda:    "the trade-off parameter for dual contrastive loss"
 --prefix:    "given name of current experiment"
 --fine_tune  "whether to fine tune the pre_trained embeddings"
 --device:    "the GPU number"
