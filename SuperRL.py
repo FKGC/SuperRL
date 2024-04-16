@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch.nn.init as init
 import math
 from torch.autograd import Variable
-from SNE import Attention_Module
+from Network_SNE import Attention_Module
 from Aggerator import *
 
 
