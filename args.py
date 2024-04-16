@@ -19,6 +19,7 @@ def read_args():
 
 	parser.add_argument("--n_layers_tf", default=4, type=int)
 	parser.add_argument("--num_layers", default=3, type=int)
+	parser.add_argument("--lamda", default=0.09, type=float)
 	parser.add_argument("--num_head", default=4, type=int)
 	parser.add_argument("--dropout_input", default=0.2, type=float)
 	parser.add_argument("--dropout_TF", default=0.3, type=float)
@@ -38,7 +39,7 @@ def read_args():
 	parser.add_argument("--random_seed", default=1, type=int)
 
 	parser.add_argument("--seed", default='19950902', type=int)
-	parser.add_argument("--max_batches", default=300000, type=int)
+	parser.add_argument("--max_batches", default=150000, type=int)
 	parser.add_argument("--weight_decay", default=0, type=float)
 
 	parser.add_argument("--lr", default=5e-5, type=float)
@@ -47,7 +48,7 @@ def read_args():
 	parser.add_argument("--base_lr", default=5e-4, type=float)  #fix
 
 	parser.add_argument("--warm_up_step", default=10000, type=int)
-	parser.add_argument("--early_stop_epoch", default=10, type=int)
+	parser.add_argument("--early_stop", default=10, type=int)
 	parser.add_argument("--optimizer", type=str, default="Adam",
 						help="Which optimizer to use?")
 	parser.add_argument("--momentum", type=float, default=0.9)
