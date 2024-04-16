@@ -1,7 +1,7 @@
 # SuperRL
-Source code for IJCAI2024 paper: Supervised Relational Learning with Selective Neighbor Entities for Few-Shot Knowledge Graph Completion
+Source code for ISWC2024 paper: Supervised Relational Learning with Selective Neighbor Entities for Few-Shot Knowledge Graph Completion(https://github.com/FKGC/SuperRL)
 
-Few-shot Knowledge Graph (KG) completion is a focus of current research, where each task aims at querying unseen facts of a relation given few-shot reference entity pairs. However, existing works overlook two catergories of neighbor entities significant to few-shot KG completion. In this work, we propose a cascaded embedding enhancement network SuperRL, where we design neighbor entity encoders to identify these crucial neighbor entities. Evaluation in link prediction on two public datasets shows that our approach achieves new state-of-the-art results with different few-shot sizes.
+Few-shot Knowledge Graph (KG) completion is a focus of current research, where each task aims at querying unseen facts of a relation given limited reference triplets. However, existing works overlook two categories of neighbor entities relevant to few-shot relations, resulting in ineffective relational learning for few-shot KG completion. In this work, we propose a supervised relational learning model (SuperRL) with these crucial neighbor entities, where we design a cascaded embedding enhancement network to capture directly and indirectly relevant entities for few-shot relations and provide supervision signals by jointly performing dual contrastive learning and metric learning. Evaluation in link prediction on two public datasets shows that our method achieves new state-of-the-art results with different few-shot sizes.
 
 # Requirements
 
@@ -27,15 +27,25 @@ All the dataset files and the pre-trained TransE embeddings should be put into t
 For optimal performance, please train SuperRL as follows:
 
 #### Nell-One
-
+3-shot
 ```
-python main.py --fine_tune --num_layers 3 --lr 8e-5 --few 5 --early_stop_epoch 15 --prefix new_final_c1n1-3_5_NELL
+python main.py --fine_tune --num_layers 2 --lr 8e-5 --few 3 --early_stop_epoch 10 --prefix SuperRL_c1n1-2_3_NELL
+```
+
+5-shot
+```
+python main.py --fine_tune --num_layers 2 --lr 8e-5 --few 5 --early_stop_epoch 10 --prefix SuperRL_c1n1-2_5_NELL
 ```
 
 #### Wiki-One
-
+3-shot
 ```
-python main.py --fine_tune --eval_every 5000 --datapath "data/Wiki/" --num_layers 6 --lr 2e-4 --few 5 --early_stop_epoch 20 --prefix new_final_c1n1-6_5_Wiki
+python main.py --datapath "data/Wiki/" --num_layers 8 --lr 2e-4 --few 3 --early_stop_epoch 10 --prefix new_final_c1n1-8_3_Wiki
+```
+
+5-shot
+```
+python main.py --datapath "data/Wiki/" --num_layers 8 --lr 2e-4 --few 5 --early_stop_epoch 10 --prefix new_final_c1n1-8_5_Wiki
 ```
 
 To test the trained models, please run as follows:
