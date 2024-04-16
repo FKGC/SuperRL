@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -103,9 +101,9 @@ class Context_Attention(nn.Module):
 
         return x.squeeze(1)
 
-class Triple_Attention_Block(nn.Module):
+class Entity_Attention_Block(nn.Module):
     def __init__(self, embedding_size, num_heads=1):
-        super(Triple_Attention_Block, self).__init__()
+        super(Entity_Attention_Block, self).__init__()
 
         self.embedding_size = embedding_size
         self.entity_attention = Triple_Attention(hidden_size=self.embedding_size, num_heads=num_heads)
@@ -121,12 +119,12 @@ class Triple_Attention_Block(nn.Module):
         head_nn_ent_aware = self.entity_attention(q=entity_right, k=ent_embeds_left, v=V_head)# (5,100)
         tail_nn_ent_aware = self.entity_attention(q=entity_left, k=ent_embeds_right, v=V_tail) # (5,100)
         concat_pair = torch.cat([head_nn_ent_aware, tail_nn_ent_aware], dim=-1)# (5,200)
-        output = torch.relu(self.MLPW1(concat_pair))# (5,200)
-        output = self.MLPW2(output)# (5,200)
-        output = self.layer_norm(output + input)# (5,200)
+        context = torch.relu(self.MLPW1(concat_pair))# (5,200)
+        context_TL = self.MLPW2(context)# (5,200)
+        output = self.layer_norm(context_TL + input)# (5,200)
         emb_left, emb_right = torch.split(output, self.embedding_size, dim=-1)  # (few/b, dim) 根据双线性层语义，各为(5,100)
 
-        return emb_left, emb_right
+        return emb_left, emb_right, context_TL
 
 class Context_Attention_Block(nn.Module):
     def __init__(self, args, embedding_size, num_heads=1):
@@ -145,42 +143,57 @@ class Context_Attention_Block(nn.Module):
         context_l = self.context_attention(q=ent_embeds_right, k=ent_embeds_left, v=V_head, mask=mask_left)
         context_r = self.context_attention(q=ent_embeds_left, k=ent_embeds_right, v=V_tail, mask=mask_right)
         concat_pair = torch.cat([context_l, context_r], dim=-1)# (5,200)
-        output = torch.relu(self.MLPW1(concat_pair))# (5,200)
-        output = self.MLPW2(output)# (5,200)
+        context = torch.relu(self.MLPW1(concat_pair))# (5,200)
+        context_CL = self.MLPW2(context)# (5,200)
         if(resdual):
             input = torch.cat([entity_left, entity_right], dim=-1)# (5,200)
-            output = self.layer_norm(output + input)# (5,200)
+            output = self.layer_norm(context_CL + input)# (5,200)
         else:
-            output = self.layer_norm(output)
-        emb_left, emb_right = torch.split(output, self.embedding_size, dim=-1)  # (few/b, dim) 根据双线性层语义，各为(5,100)
-        return emb_left, emb_right
+            output = self.layer_norm(context_CL)
+        emb_left, emb_right = torch.split(output, self.embedding_size, dim=-1)  # (few/b, dim)
+        return emb_left, emb_right, context_CL
 
 class Transformer(nn.Module):
     def __init__(self, args, embedding_size, num_heads=1, num_layers=3):
         super(Transformer, self).__init__()
         self.num_layers = num_layers
         self.embedding_size = embedding_size
-        self.entity_pair_attention_modules = nn.ModuleList([Triple_Attention_Block(self.embedding_size, num_heads=num_heads) for _ in range(self.num_layers)])
-        self.context_pair_attention_modules = nn.ModuleList([Context_Attention_Block(args, self.embedding_size, num_heads=num_heads) for _ in range(self.num_layers)])
+        if num_layers != 0:
+            self.entity_pair_attention_modules = nn.ModuleList([Entity_Attention_Block(self.embedding_size, num_heads=num_heads) for _ in range(self.num_layers)])
+            self.context_pair_attention_modules = nn.ModuleList([Context_Attention_Block(args, self.embedding_size, num_heads=num_heads) for _ in range(self.num_layers)])
+        self.context_TL_encoder = Entity_Attention_Block(self.embedding_size, num_heads=num_heads)
+        self.context_CL_encoder = Context_Attention_Block(args, self.embedding_size, num_heads=num_heads)
     
     def forward(self, entity_left, entity_right, ent_embeds_left, ent_embeds_right, V_head, V_tail, mask=None, resdual=True):
+        if self.num_layers==0:
+            enhanced_left = entity_left
+            enhanced_right = entity_right
+        else:
+            enhanced_left, enhanced_right, _ = self.context_pair_attention_modules[0](entity_left=entity_left, entity_right=entity_right,
+                                                                            ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
+                                                                            V_head=V_head, V_tail=V_tail, mask=mask, resdual=resdual)
+            enhanced_left, enhanced_right, _ = self.entity_pair_attention_modules[0](entity_left=enhanced_left, entity_right=enhanced_right,
+                                                                            ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
+                                                                            V_head=V_head, V_tail=V_tail)
+            for i in range(self.num_layers - 1):
+                enhanced_left, enhanced_right, _ = self.context_pair_attention_modules[i+1](entity_left=enhanced_left, entity_right=enhanced_right,
+                                                                                ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
+                                                                                V_head=V_head, V_tail=V_tail, mask=mask, resdual=resdual)
 
-        enhanced_left, enhanced_right = self.context_pair_attention_modules[0](entity_left=entity_left, entity_right=entity_right,
-                                                                        ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
-                                                                        V_head=V_head, V_tail=V_tail, mask=mask, resdual=resdual)
-        enhanced_left, enhanced_right = self.entity_pair_attention_modules[0](entity_left=enhanced_left, entity_right=enhanced_right,
-                                                                        ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
-                                                                        V_head=V_head, V_tail=V_tail)
-        for i in range(self.num_layers - 1):
-            enhanced_left, enhanced_right = self.context_pair_attention_modules[i+1](entity_left=enhanced_left, entity_right=enhanced_right,
+                enhanced_left, enhanced_right, _ = self.entity_pair_attention_modules[i+1](entity_left=enhanced_left, entity_right=enhanced_right,
+                                                                                ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
+                                                                                V_head=V_head, V_tail=V_tail)
+                                                                              
+        left_CL,right_CL,context_CL = self.context_CL_encoder(entity_left=enhanced_left, entity_right=enhanced_right,
                                                                               ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
                                                                               V_head=V_head, V_tail=V_tail, mask=mask, resdual=resdual)
-
-            enhanced_left, enhanced_right = self.entity_pair_attention_modules[i+1](entity_left=enhanced_left, entity_right=enhanced_right,
+        left_TL,right_TL,context_TL = self.context_TL_encoder(entity_left=enhanced_left, entity_right=enhanced_right,
                                                                               ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
                                                                               V_head=V_head, V_tail=V_tail)
-        
-        return enhanced_left, enhanced_right
+        context_CL = torch.cat([left_CL,right_CL], dim=-1)
+        context_TL = torch.cat([left_TL,right_TL], dim=-1)
+
+        return enhanced_left, enhanced_right, context_CL, context_TL
 
 class Attention_Module(nn.Module):
     def __init__(self, args, embed, num_symbols, embedding_size, use_pretrain=True, finetune=True, dropout_rate=0.3, num_layers=6):
@@ -206,10 +219,11 @@ class Attention_Module(nn.Module):
         # 最终版本
         
         self.Transformer = Transformer(args=self.args, embedding_size=self.embedding_size,num_heads=1,num_layers=num_layers)
+        self.layer_norm = nn.LayerNorm(2 * self.embedding_size)
 
         init.xavier_normal_(self.gate_w.weight)
 
-    def SNE(self, entity_left, entity_right, rel_embeds_left, rel_embeds_right, ent_embeds_left, ent_embeds_right, entity_meta):
+    def SPD_attention(self, entity_left, entity_right, rel_embeds_left, rel_embeds_right, ent_embeds_left, ent_embeds_right, entity_meta):
         """
         ent: (few/b, dim)
         nn:  (few/b, max, 2*dim)
@@ -221,13 +235,14 @@ class Attention_Module(nn.Module):
         mask = self.build_context(entity_meta)
 
         # 最终版本1
-        enhanced_left, enhanced_right = self.Transformer(entity_left=entity_left, entity_right=entity_right,
+        enhanced_left, enhanced_right, context_CL, context_TL = self.Transformer(entity_left=entity_left, entity_right=entity_right,
                                                         ent_embeds_left=ent_embeds_left, ent_embeds_right=ent_embeds_right,
                                                         V_head=V_head, V_tail=V_tail, mask=mask, resdual=True)
         
         ent_pair_rep = torch.cat((enhanced_left, enhanced_right), dim=-1)
+        # ent_pair_rep = self.layer_norm(context_CL +context_TL)
         
-        return ent_pair_rep
+        return ent_pair_rep, context_CL, context_TL
     
     def build_context(self, meta):
 
@@ -258,6 +273,7 @@ class Attention_Module(nn.Module):
         entity_left = entity_left.squeeze(1)    # (few/b, dim) (5,100)
         entity_right = entity_right.squeeze(1)   # (few/b, dim) (5,100)
 
+        anchor_query = torch.cat([entity_left,entity_right], dim=-1)
 
         entity_left_connections, entity_left_degrees, entity_right_connections, entity_right_degrees = entity_meta
 
@@ -271,7 +287,7 @@ class Attention_Module(nn.Module):
         rel_embeds_right = self.dropout(self.symbol_emb(relations_right))  # (few/b, max, dim) (5,100,100)
         ent_embeds_right = self.dropout(self.symbol_emb(entities_right)) # (few/b, max, dim) (5,100,100)
 
-        ent_pair_rep = self.SNE(entity_left, entity_right, rel_embeds_left, rel_embeds_right, ent_embeds_left, ent_embeds_right, entity_meta) #(512,200)
+        ent_pair_rep, context_CL, context_TL = self.SPD_attention(entity_left, entity_right, rel_embeds_left, rel_embeds_right, ent_embeds_left, ent_embeds_right, entity_meta) #(512,200)
 
-        return ent_pair_rep
+        return ent_pair_rep, context_CL, context_TL, anchor_query
 
