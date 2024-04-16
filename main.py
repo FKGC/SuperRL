@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 from dataloader import train_generate
 import random
-from MRL import MRL  # ************************
+from SuperRL import MRL  # ************************
 import numpy as np
 import json
 torch.set_num_threads(1)
@@ -318,6 +318,7 @@ class Model_Run(object):
         best_batches = 0
 
         losses = deque([], args.log_every)
+        losses_info = deque([], args.log_every)
         margins = deque([], args.log_every)
         for data in train_generate(self.form, args.datapath, args.batch_size, args.few, self.symbol2id, self.ent2id, self.e1rel_e2):
 
@@ -337,19 +338,20 @@ class Model_Run(object):
 
             self.CIAN.train()
 
-            positive_score, negative_score = self.CIAN(support, support_meta,
+            positive_score, negative_score, loss_info = self.CIAN(support, support_meta,
                                                            query, query_meta,
                                                            false, false_meta, is_train=True)
 
 
             margin_ = positive_score - negative_score # (512)
-            loss = F.relu(self.margin - margin_).mean() # 1
+            loss = F.relu(self.margin - margin_).mean() + loss_info # 1
             margins.append(margin_.mean().item())
             lr = adjust_learning_rate(optimizer=self.optim, epoch=self.batch_nums, lr=args.lr,
                                       warm_up_step=args.warm_up_step,
                                       max_update_step=args.max_batches)
 
             losses.append(loss.item())
+            losses_info.append(loss_info.item())
 
             self.optim.zero_grad()
             loss.backward()
@@ -359,15 +361,21 @@ class Model_Run(object):
             if self.batch_nums % self.log_every == 0:
                 lr = self.optim.param_groups[0]['lr']
                 logging.info(
-                    'Batch: {:d}, Avg_batch_loss: {:.6f}, lr: {:.6f}'.format(
+                    'Batch: {:d}, Avg_batch_loss: {:.6f}, Avg_info_loss: {:.6f},lr: {:.6f}'.format(
                         self.batch_nums,
                         np.mean(losses),
+                        np.mean(losses_info),
                         lr))
                 self.writer.add_scalar('Avg_batch_loss_every_log', np.mean(losses), self.batch_nums)
 
             if self.batch_nums % self.eval_every == 0:
                 logging.info('Batch_nums is %d' % self.batch_nums)
                 hits10, hits5, hits1, mrr = self.eval(mode='dev')
+                self.writer.add_scalar('HITS10', hits10, self.batch_nums)
+                self.writer.add_scalar('HITS5', hits5, self.batch_nums)
+                self.writer.add_scalar('HITS1', hits1, self.batch_nums)
+                self.writer.add_scalar('MRR', mrr, self.batch_nums)
+                hits10, hits5, hits1, mrr = self.eval(mode='test')
                 self.writer.add_scalar('HITS10', hits10, self.batch_nums)
                 self.writer.add_scalar('HITS5', hits5, self.batch_nums)
                 self.writer.add_scalar('HITS1', hits1, self.batch_nums)
@@ -442,7 +450,7 @@ class Model_Run(object):
                     query = torch.LongTensor(query_pairs).to(device=args.device)  # (few, 18)
                     query_meta = self.get_meta(query_left, query_right)
 
-                    scores, _ = self.CIAN(support, support_meta,
+                    scores, _, _ = self.CIAN(support, support_meta,
                                               query, query_meta, false=None, false_meta=None, is_train=False)
 
                     scores.detach()
