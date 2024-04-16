@@ -15,7 +15,7 @@ import time
 from collections import defaultdict
 from dataloader import train_generate
 import random
-from CIAN import CIAN  # ************************
+from SuperRL import MRL  # ************************
 import numpy as np
 import json
 torch.set_num_threads(1)
